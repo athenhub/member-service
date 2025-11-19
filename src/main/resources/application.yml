@@ -3,12 +3,12 @@ spring:
     name: member-service
   config:
     import:
-     - 'optional:configserver:http://3.38.80.105:9100'
+      - 'optional:configserver:'
   cloud:
     config:
       discovery:
         enabled: false
-        #service-id: ${CLOUD_SERVICE_ID}
+        service-id: ${CLOUD_SERVICE_ID}
 
 eureka:
   instance:
