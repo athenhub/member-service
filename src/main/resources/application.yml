@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: member-service
+  config:
+    import:
+     - 'optional:configserver:http://3.38.80.105:9100'
+  cloud:
+    config:
+      discovery:
+        enabled: false
+        #service-id: ${CLOUD_SERVICE_ID}
+
+eureka:
+  instance:
+    prefer-ip-address: false
+    hostname: ${EUREKA_HOSTNAME}
+
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: ${EUREKA_SERVICE_URL}
