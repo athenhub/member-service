@@ -24,6 +24,8 @@ configurations {
 }
 
 repositories {
+    mavenLocal()  // ⬅ 여기 추가
+
     mavenCentral()
 
     maven {
@@ -70,7 +72,7 @@ dependencies {
 
 
     // common
-    implementation 'com.athenhub:common-mvc:1.1.0'
+    implementation 'com.athenhub:common-mvc:1.2.0'
 
     // lombok
     compileOnly 'org.projectlombok:lombok'
@@ -85,6 +87,10 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // Swagger
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14'
+
 
     // mockito javaagent
     mockitoAgent('org.mockito:mockito-core') {
