@@ -24,6 +24,7 @@ public class HubId {
   public UUID toUuid() {
     return id;
   }
+
   @Override
   public String toString() {
     return id.toString();

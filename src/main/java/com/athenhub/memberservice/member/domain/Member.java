@@ -33,8 +33,7 @@ public class Member extends AbstractAuditEntity {
   @Column(nullable = false)
   private String keycloakUserId;
 
-  @Embedded
-  private HubId hubId;
+  @Embedded private HubId hubId;
 
   @Column(nullable = false)
   private String name;
@@ -106,28 +105,18 @@ public class Member extends AbstractAuditEntity {
     this.status = MemberStatus.REJECTED;
   }
 
-
   // ======== 헬퍼 메서드 ==========//
 
   //
   private void memberStatusNotPending() {
     if (this.status != MemberStatus.PENDING) {
-      throw new MemberException(
-          MemberErrorCode.INVALID_APPROVE_STATUS,
-          "대기 상태인 회원만 승인할 수 있습니다."
-      );
+      throw new MemberException(MemberErrorCode.INVALID_APPROVE_STATUS, "대기 상태인 회원만 승인할 수 있습니다.");
     }
   }
 
   private void memberStatusRejected() {
     if (this.status == MemberStatus.REJECTED) {
-      throw new MemberException(
-          MemberErrorCode.INVALID_APPROVE_STATUS,
-          "거절된 회원입니다."
-      );
+      throw new MemberException(MemberErrorCode.INVALID_APPROVE_STATUS, "거절된 회원입니다.");
     }
   }
-
-
-
 }

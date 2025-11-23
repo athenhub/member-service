@@ -8,5 +8,4 @@ public class PermissionException extends AbstractServiceException {
   public PermissionException(ErrorCode errorCode, Object... errorArgs) {
     super(errorCode, errorArgs);
   }
-
 }
