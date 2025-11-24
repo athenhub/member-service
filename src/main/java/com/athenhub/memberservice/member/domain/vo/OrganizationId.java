@@ -12,13 +12,13 @@ import lombok.NoArgsConstructor;
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class HubId {
+public class OrganizationId {
 
-  @Column(name = "hub_id", nullable = false)
+  @Column(name = "organization_id", nullable = false)
   private UUID id;
 
-  public static HubId of(UUID id) {
-    return new HubId(id);
+  public static OrganizationId of(UUID id) {
+    return new OrganizationId(id);
   }
 
   public UUID toUuid() {
@@ -29,4 +29,5 @@ public class HubId {
   public String toString() {
     return id.toString();
   }
+
 }

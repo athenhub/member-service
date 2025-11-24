@@ -11,6 +11,5 @@ public record MemberMasterUpdateRequest(
     @NotBlank String name,
     @NotNull MemberRole role,
     @NotNull OrganizationType organizationType,
-    @NotNull UUID hubId,
-    @NotBlank String organizationName,
+    String organizationName,
     @NotNull MemberStatus status) {}

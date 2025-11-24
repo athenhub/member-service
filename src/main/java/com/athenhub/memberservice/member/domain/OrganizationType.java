@@ -1,7 +1,7 @@
 package com.athenhub.memberservice.member.domain;
 
 public enum OrganizationType {
-  NONE,
+  OTHERS,
   HUB,
   VENDOR
 }
