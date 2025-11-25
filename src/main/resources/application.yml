@@ -21,6 +21,14 @@ eureka:
     service-url:
       defaultZone: ${EUREKA_SERVICE_URL}
 
+# 키클록 config 설정
+keycloak:
+  admin:
+    server-url: https://auth.athenhub.xyz/
+    realm: athenhub-dev
+    client-id: athenhub-web
+    client-secret: ${CLIENT_SECRET}
+
 # OPEN DOC API 설정
 springdoc:
   version: '1.0.0'

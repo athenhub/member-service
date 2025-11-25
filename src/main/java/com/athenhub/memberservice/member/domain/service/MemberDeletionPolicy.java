@@ -13,7 +13,7 @@ public interface MemberDeletionPolicy {
   /**
    * 회원 삭제 요청이 유효한지 검증한다.
    *
-   * @param member      삭제 대상 회원
+   * @param member 삭제 대상 회원
    * @param requesterId 삭제를 요청한 주체(본인, 관리자 등)의 ID
    */
   void validate(Member member, UUID requesterId);

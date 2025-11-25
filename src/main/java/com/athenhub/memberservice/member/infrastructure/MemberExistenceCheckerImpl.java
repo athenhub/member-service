@@ -1,75 +1,59 @@
 package com.athenhub.memberservice.member.infrastructure;
 
+import com.athenhub.memberservice.member.domain.MemberRepository;
 import com.athenhub.memberservice.member.domain.service.MemberExistenceChecker;
 import com.athenhub.memberservice.member.domain.vo.MemberId;
-import com.athenhub.memberservice.member.domain.vo.MemberRepository;
+import com.athenhub.memberservice.member.infrastructure.keycloak.KeycloakProperties;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.keycloak.admin.client.Keycloak;
+import org.keycloak.admin.client.resource.UsersResource;
+import org.keycloak.representations.idm.UserRepresentation;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 /**
- * {@link MemberExistenceChecker} 의 JPA 기반 구현체.
+ * {@link MemberExistenceChecker} 의 Keycloak + JPA 기반 구현체.
  *
- * <p>회원의 존재 여부 및 username, Slack ID 중복 여부를 확인하기 위해
- * {@link MemberRepository} 를 사용하여 데이터베이스를 조회한다. 도메인 계층에서는 이 구현체가
- * 아닌 {@link MemberExistenceChecker} 인터페이스에만 의존함으로써 인프라스트럭처 세부 구현으로부터
- * 분리된다.
- *
- * @author 사용자
- * @since 1.0.0
+ * <p>- username 중복 여부: Keycloak Realm 에서 조회 - slackId 중복 여부: member DB(JPA) 에서 조회
  */
 @Component
 @RequiredArgsConstructor
+@EnableConfigurationProperties(KeycloakProperties.class)
 public class MemberExistenceCheckerImpl implements MemberExistenceChecker {
 
+  private final KeycloakProperties keycloakProperties;
+  private final Keycloak keycloak;
   private final MemberRepository memberRepository;
 
-  /**
-   * 주어진 회원 ID를 가진 회원이 존재하는지 확인한다.
-   *
-   * <p>회원 ID가 {@code null} 인 경우에는 존재하지 않는 것으로 간주하고 {@code false} 를 반환한다.
-   *
-   * @param memberId 존재 여부를 확인할 회원의 고유 ID
-   * @return 회원이 존재하면 {@code true}, 존재하지 않으면 {@code false}
-   */
+  /** 주어진 회원 ID를 가진 회원이 DB(p_member 테이블)에 존재하는지 확인한다. */
   @Override
   public boolean hasMember(UUID memberId) {
     if (memberId == null) {
       return false;
     }
-    // MemberId 가 VO 이므로 UUID를 감싸서 조회한다.
+    // MemberId 는 VO 이므로 UUID 를 감싸서 조회
     return memberRepository.existsById(MemberId.of(memberId));
   }
 
-  /**
-   * 주어진 username 이 이미 사용 중인지 확인한다.
-   *
-   * <p>username 이 {@code null} 이거나 공백 문자열인 경우에는 중복이 아닌 것으로 간주하고 {@code false}
-   * 를 반환한다.
-   *
-   * @param username 중복 여부를 확인할 회원 아이디(username)
-   * @return 해당 username 을 사용하는 회원이 이미 존재하면 {@code true}, 아니면 {@code false}
-   */
+  /** username 이 Keycloak Realm 에 이미 존재하는지 확인한다. */
   @Override
   public boolean existsByUsername(String username) {
-    if (username == null || username.isBlank()) {
+    if (!StringUtils.hasText(username)) {
       return false;
     }
-    return memberRepository.existsByUsername(username);
+    UsersResource users = keycloak.realm(keycloakProperties.getRealm()).users();
+    // Keycloak admin client 의 username 검색 (정확히 일치하는 계정만 찾도록 true)
+    List<UserRepresentation> results = users.searchByUsername(username, true);
+    return !results.isEmpty();
   }
 
-  /**
-   * 주어진 Slack ID 가 이미 사용 중인지 확인한다.
-   *
-   * <p>Slack ID 가 {@code null} 이거나 공백 문자열인 경우에는 중복이 아닌 것으로 간주하고 {@code false} 를
-   * 반환한다.
-   *
-   * @param slackId 중복 여부를 확인할 Slack ID
-   * @return 해당 Slack ID 를 사용하는 회원이 이미 존재하면 {@code true}, 아니면 {@code false}
-   */
+  /** slackId 가 우리 서비스 member DB 에서 이미 사용 중인지 확인한다. */
   @Override
   public boolean existsBySlackId(String slackId) {
-    if (slackId == null || slackId.isBlank()) {
+    if (!StringUtils.hasText(slackId)) {
       return false;
     }
     return memberRepository.existsBySlackId(slackId);

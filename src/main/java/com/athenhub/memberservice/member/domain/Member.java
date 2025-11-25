@@ -19,7 +19,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
-import java.util.Objects;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -33,22 +32,17 @@ import lombok.ToString;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member extends AbstractAuditEntity {
 
-  @EmbeddedId
-  private MemberId id;
+  @EmbeddedId private MemberId id;
 
-  @Column(nullable = false, unique = true)
-  private String keycloakUserId;
+  @Embedded private OrganizationId organizationId;
 
-  @Embedded
-  private OrganizationId organizationId;
-
-  @Column(nullable = false, unique = true)
+  @Column(nullable = false)
   private String name;
 
   @Column(nullable = false, unique = true)
   private String username;
 
-  @Column(nullable = false)
+  @Column(nullable = false, unique = true)
   private String slackId;
 
   @Enumerated(EnumType.STRING)
@@ -69,19 +63,16 @@ public class Member extends AbstractAuditEntity {
   // 회원 등록
   public static Member signUp(
       MemberRegisterRequest registerRequest,
-      String keycloakUserId,
+      UUID memberId,
       MemberExistenceChecker memberExistenceChecker) {
 
     // 중복 검증
-    checkDuplicateMember(registerRequest, memberExistenceChecker);
-
-    OrganizationId organizationId = OrganizationId.of(registerRequest.organizationId().toUuid());
+    checkDuplicateMember(memberId, memberExistenceChecker);
 
     Member member = new Member();
 
-
-    member.keycloakUserId = Objects.requireNonNull(keycloakUserId);
-    member.organizationId = organizationId;
+    member.id = MemberId.of(memberId);
+    member.organizationId = registerRequest.organizationId();
     member.name = registerRequest.name();
     member.username = registerRequest.username();
     member.slackId = registerRequest.slackId();
@@ -104,9 +95,12 @@ public class Member extends AbstractAuditEntity {
   }
 
   // MASTER_MANAGER 권한 정보 수정
-  public void updateByMaster(MemberMasterUpdateRequest updateRequest, UUID requestId, PermissionChecker permissionChecker) {
+  public void updateByMaster(
+      MemberMasterUpdateRequest updateRequest,
+      UUID requestId,
+      PermissionChecker permissionChecker) {
 
-    validateMasterOperation(updateRequest, requestId, permissionChecker);
+    masterManagerMethod(requestId, permissionChecker);
 
     this.name = updateRequest.name();
     this.role = updateRequest.role();
@@ -116,9 +110,7 @@ public class Member extends AbstractAuditEntity {
   // 가입 승인
   public void approve(UUID requestId, PermissionChecker permissionChecker) {
 
-    checkMemberManagePermission(this.id.toUuid(), permissionChecker, requestId);
-
-    validateNotDeleted();
+    masterManagerMethod(requestId, permissionChecker);
 
     requireStatus(MemberStatus.PENDING, MemberErrorCode.INVALID_APPROVE_STATUS);
     this.status = MemberStatus.ACTIVATED;
@@ -127,21 +119,16 @@ public class Member extends AbstractAuditEntity {
   // 가입 거절
   public void reject(UUID requestId, PermissionChecker permissionChecker) {
 
-    checkMemberManagePermission(this.id.toUuid(), permissionChecker, requestId);
-
-    validateNotDeleted();
+    masterManagerMethod(requestId, permissionChecker);
 
     requireStatus(MemberStatus.PENDING, MemberErrorCode.INVALID_APPROVE_STATUS);
     this.status = MemberStatus.REJECTED;
   }
 
   // 소프트 삭제 (회원 삭제/탈퇴)
-  public void deleteMember(String deletedBy, PermissionChecker permissionChecker,
-      UUID requestId) {
+  public void deleteMember(String deletedBy, PermissionChecker permissionChecker, UUID requestId) {
 
-    checkMemberManagePermission(this.id.toUuid(), permissionChecker, requestId);
-
-    validateNotDeleted();
+    masterManagerMethod(requestId, permissionChecker);
 
     this.status = MemberStatus.DEACTIVATED;
     super.delete(deletedBy);
@@ -149,29 +136,21 @@ public class Member extends AbstractAuditEntity {
 
   // ======== 헬퍼 메서드 ==========//
 
-  // 마스터 매니저 공통 메서드
-  private void validateMasterOperation(MemberMasterUpdateRequest updateRequest, UUID requestId,
-      PermissionChecker permissionChecker) {
+  // 마스터 매니저 헬퍼 메서드 묶음(Permission + validateNotDelete)
+  private void masterManagerMethod(UUID requestId, PermissionChecker permissionChecker) {
     checkMemberManagePermission(this.id.toUuid(), permissionChecker, requestId);
     validateNotDeleted();
   }
 
-  // 중복 체크 검증 메서드(username, slackId 중복 체크)
-  private static void checkDuplicateMember(MemberRegisterRequest registerRequest,
-      MemberExistenceChecker memberExistenceChecker) {
-    // username 중복 체크
-    if (memberExistenceChecker.existsByUsername(registerRequest.username())) {
-      throw new MemberException(
-          MemberErrorCode.USED_MEMBER_INFO
-      );
-    }
-    // slackId 중복 체크
-    if (memberExistenceChecker.existsBySlackId(registerRequest.slackId())) {
-      throw new MemberException(
-          MemberErrorCode.USED_MEMBER_INFO
-      );
+  // 아이디 중복 체크
+  private static void checkDuplicateMember(
+      UUID memberId, MemberExistenceChecker memberExistenceChecker) {
+    if (!memberExistenceChecker.hasMember(memberId)) {
+      throw new MemberException(MemberErrorCode.USED_MEMBER_INFO);
     }
   }
+
+  private static void checkSlackId() {}
 
   // 회원에 대한 관리 권한(마스터 권한) 확인
   private static void checkMemberManagePermission(
@@ -180,7 +159,6 @@ public class Member extends AbstractAuditEntity {
       throw new PermissionException(PermissionErrorCode.HAS_NOT_MANAGE_PERMISSION);
     }
   }
-
 
   // 들어오는 Status값이 같이 않을 경우
   private void requireStatus(MemberStatus expectedStatus, MemberErrorCode errorCode) {
@@ -196,9 +174,8 @@ public class Member extends AbstractAuditEntity {
     }
   }
 
-  /** soft delete 여부: deletedAt 이 설정되었는지로 판단 */
+  // soft delete 여부: deletedAt 이 설정되었는지로 판단
   public boolean isDeleted() {
     return getDeletedAt() != null;
   }
-
 }

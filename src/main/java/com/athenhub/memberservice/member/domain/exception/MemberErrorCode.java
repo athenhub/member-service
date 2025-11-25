@@ -7,14 +7,21 @@ import org.springframework.http.HttpStatus;
 /**
  * 회원 도메인 전반에서 사용하는 에러 코드 정의.
  *
- * <p>유형별로 다음과 같이 분류된다.</p>
+ * <p>유형별로 다음과 같이 분류된다.
+ *
  * <ul>
- *   <li>요청 값/정합성 오류: {@link #INVALID_MEMBER_INFO}, {@link #USED_MEMBER_INFO}</li>
+ *   <li>요청 값/정합성 오류: {@link #INVALID_MEMBER_INFO}, {@link #USED_MEMBER_INFO}
  *   <li>상태 전이/상태 제약: {@link #INVALID_APPROVE_STATUS}, {@link #INVALID_STATUS_FOR_UPDATE},
- *       {@link #INVALID_STATUS_TRANSITION}, {@link #DELETED_MEMBER}</li>
- *   <li>리소스 조회 실패: {@link #MEMBER_NOT_FOUND}, {@link #HUB_NOT_FOUND}</li>
- *   <li>권한 오류: {@link #NO_PERMISSION}</li>
+ *       {@link #INVALID_STATUS_TRANSITION}, {@link #DELETED_MEMBER}
+ *   <li>리소스 조회 실패: {@link #MEMBER_NOT_FOUND}, {@link #HUB_NOT_FOUND}
+ *   <li>권한 오류: {@link #NO_PERMISSION}
  * </ul>
+ *
+ * <p>각 에러 코드는 HTTP 상태 코드와 애플리케이션 내부 에러 코드를 함께 제공하여, 클라이언트 응답 및
+ * 로깅/모니터링 시 일관된 형태로 활용될 수 있다.
+ *
+ * @author 박성준
+ * @since 1.0.0
  */
 @RequiredArgsConstructor
 public enum MemberErrorCode implements ErrorCode {
