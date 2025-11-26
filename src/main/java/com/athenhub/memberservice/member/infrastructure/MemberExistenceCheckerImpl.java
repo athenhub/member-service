@@ -1,9 +1,9 @@
 package com.athenhub.memberservice.member.infrastructure;
 
+import com.athenhub.memberservice.infrastructure.keycloak.config.KeycloakProperties;
 import com.athenhub.memberservice.member.domain.MemberRepository;
 import com.athenhub.memberservice.member.domain.service.MemberExistenceChecker;
 import com.athenhub.memberservice.member.domain.vo.MemberId;
-import com.athenhub.memberservice.member.infrastructure.keycloak.KeycloakProperties;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;

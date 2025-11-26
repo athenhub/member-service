@@ -44,8 +44,8 @@ public enum MemberErrorCode implements ErrorCode {
   DELETED_MEMBER(HttpStatus.BAD_REQUEST.value(), "DELETED_MEMBER"),
 
   // ===== 리소스 조회 실패 =====
-  MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST.value(), "MEMBER_NOT_FOUND"),
-  HUB_NOT_FOUND(HttpStatus.BAD_REQUEST.value(), "HUB_NOT_FOUND"),
+  MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "MEMBER_NOT_FOUND"),
+  HUB_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "HUB_NOT_FOUND"),
 
   // ===== 권한 관련 =====
   NO_PERMISSION(HttpStatus.FORBIDDEN.value(), "NO_PERMISSION");

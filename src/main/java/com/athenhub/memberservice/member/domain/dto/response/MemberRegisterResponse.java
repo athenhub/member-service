@@ -7,40 +7,42 @@ import com.athenhub.memberservice.member.domain.OrganizationType;
 import java.util.UUID;
 
 /**
- * 회원 가입 완료 후 클라이언트에 반환하는 응답 DTO.
+ * 회원 가입 완료 후 클라이언트에 반환할 회원 정보 응답 DTO.
  *
- * <p>신규로 등록된 회원의 주요 정보를 포함하며, 비밀번호와 같이 민감한 정보는 포함하지 않는다.
+ * <p>민감 정보(비밀번호 등)는 포함하지 않으며, 식별자와 표시용 정보 및 상태만 노출한다.
  *
  * @author 박성준
  * @since 1.0.0
  */
 public record MemberRegisterResponse(
     UUID id,
-    String name,
     String username,
+    String name,
     String slackId,
     MemberRole role,
     MemberStatus status,
-    UUID organizationId,
     OrganizationType organizationType,
+    UUID organizationId,
     String organizationName) {
 
   /**
-   * 도메인 엔터티 {@link Member}를 기반으로 {@link MemberRegisterResponse} 인스턴스를 생성한다.
+   * {@link Member} 엔터티로부터 {@link MemberRegisterResponse}를 생성한다.
    *
-   * @param member 등록이 완료된 회원 엔터티
-   * @return 회원 정보를 담은 응답 DTO
+   * @param member 응답으로 변환할 회원 엔터티
+   * @return 변환된 회원 등록 응답 DTO
    */
   public static MemberRegisterResponse from(Member member) {
+    UUID orgId = member.getOrganizationId() == null ? null : member.getOrganizationId().toUuid();
+
     return new MemberRegisterResponse(
         member.getId().toUuid(),
-        member.getName(),
         member.getUsername(),
+        member.getName(),
         member.getSlackId(),
         member.getRole(),
         member.getStatus(),
-        member.getOrganizationId() != null ? member.getOrganizationId().toUuid() : null,
         member.getOrganizationType(),
+        orgId,
         member.getOrganizationName());
   }
 }
