@@ -1,4 +1,4 @@
-package com.athenhub.memberservice.member.infrastructure.keycloak;
+package com.athenhub.memberservice.infrastructure.keycloak.config;
 
 import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.Keycloak;
