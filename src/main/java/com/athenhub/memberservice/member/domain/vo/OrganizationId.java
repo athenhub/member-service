@@ -2,23 +2,26 @@ package com.athenhub.memberservice.member.domain.vo;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import java.util.Objects;
 import java.util.UUID;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @EqualsAndHashCode
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class HubId {
+public class OrganizationId {
 
-  @Column(name = "hub_id", nullable = false)
+  @Column(name = "organization_id", nullable = false)
   private UUID id;
 
-  public static HubId of(UUID id) {
-    return new HubId(id);
+  private OrganizationId(UUID id) {
+    this.id = Objects.requireNonNull(id);
+  }
+
+  public static OrganizationId of(UUID id) {
+    return new OrganizationId(id);
   }
 
   public UUID toUuid() {

@@ -2,9 +2,10 @@ package com.athenhub.memberservice.member.domain.dto.request;
 
 import com.athenhub.memberservice.member.domain.MemberRole;
 import com.athenhub.memberservice.member.domain.OrganizationType;
+import com.athenhub.memberservice.member.domain.vo.OrganizationId;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import java.util.UUID;
+import jakarta.validation.constraints.Pattern;
 
 /**
  * 회원 등록을 위한 요청 정보 DTO.
@@ -29,9 +30,14 @@ import java.util.UUID;
  */
 public record MemberRegisterRequest(
     @NotBlank String name,
-    @NotBlank String username,
+    @NotBlank @Pattern(regexp = "^[a-z0-9]{4,10}$") String username,
     @NotBlank String slackId,
+    @NotBlank
+        @Pattern(
+            regexp = "^[A-Za-z0-9!@#$%^&*()_+=-]{8,15}$",
+            message = "비밀번호는 8~15자이며 영문 대소문자, 숫자, 지정된 특수문자만 사용할 수 있습니다.")
+        String password,
     @NotNull MemberRole role,
     @NotNull OrganizationType organizationType,
-    UUID hubId,
+    OrganizationId organizationId,
     String organizationName) {}
