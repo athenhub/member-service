@@ -17,7 +17,19 @@ import org.springframework.util.StringUtils;
 /**
  * {@link MemberExistenceChecker} 의 Keycloak + JPA 기반 구현체.
  *
- * <p>- username 중복 여부: Keycloak Realm 에서 조회 - slackId 중복 여부: member DB(JPA) 에서 조회
+ * <p>회원 존재 여부 및 중복 여부를 다음과 같이 확인한다.
+ *
+ * <ul>
+ *   <li>회원 존재 여부: member DB(p_member 테이블, JPA) 조회
+ *   <li>username 중복 여부: Keycloak Realm 사용자 조회
+ *   <li>slackId 중복 여부: member DB(JPA) 조회
+ * </ul>
+ *
+ * <p>도메인 계층은 이 구현체가 아닌 {@link MemberExistenceChecker} 인터페이스에만 의존하며, Keycloak 및 JPA 관련 세부 사항은
+ * 인프라스트럭처 계층에 캡슐화된다.
+ *
+ * @author 박성준
+ * @since 1.0.0
  */
 @Component
 @RequiredArgsConstructor
@@ -28,7 +40,12 @@ public class MemberExistenceCheckerImpl implements MemberExistenceChecker {
   private final Keycloak keycloak;
   private final MemberRepository memberRepository;
 
-  /** 주어진 회원 ID를 가진 회원이 DB(p_member 테이블)에 존재하는지 확인한다. */
+  /**
+   * 주어진 회원 ID를 가진 회원이 DB(p_member 테이블)에 존재하는지 확인한다.
+   *
+   * @param memberId 존재 여부를 확인할 회원의 UUID
+   * @return 회원이 존재하면 {@code true}, 존재하지 않으면 {@code false}
+   */
   @Override
   public boolean hasMember(UUID memberId) {
     if (memberId == null) {
@@ -38,7 +55,15 @@ public class MemberExistenceCheckerImpl implements MemberExistenceChecker {
     return memberRepository.existsById(MemberId.of(memberId));
   }
 
-  /** username 이 Keycloak Realm 에 이미 존재하는지 확인한다. */
+  /**
+   * 주어진 username 이 Keycloak Realm 에 이미 존재하는지 확인한다.
+   *
+   * <p>Keycloak Admin Client의 {@link UsersResource#searchByUsername(String, Boolean)}를 사용하며, 정확히
+   * 일치하는 username 만 검색하도록 설정한다.
+   *
+   * @param username 중복 여부를 확인할 username
+   * @return 해당 username 을 가진 계정이 하나 이상 존재하면 {@code true}, 아니면 {@code false}
+   */
   @Override
   public boolean existsByUsername(String username) {
     if (!StringUtils.hasText(username)) {
@@ -50,7 +75,12 @@ public class MemberExistenceCheckerImpl implements MemberExistenceChecker {
     return !results.isEmpty();
   }
 
-  /** slackId 가 우리 서비스 member DB 에서 이미 사용 중인지 확인한다. */
+  /**
+   * 주어진 Slack ID 가 우리 서비스 member DB 에서 이미 사용 중인지 확인한다.
+   *
+   * @param slackId 중복 여부를 확인할 Slack ID
+   * @return 해당 Slack ID 를 사용하는 회원이 존재하면 {@code true}, 아니면 {@code false}
+   */
   @Override
   public boolean existsBySlackId(String slackId) {
     if (!StringUtils.hasText(slackId)) {

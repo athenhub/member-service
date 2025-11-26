@@ -19,6 +19,7 @@ import jakarta.validation.constraints.Pattern;
  *   <li>{@code name} — 회원 이름 (필수)
  *   <li>{@code username} — 계정 ID, 4~10자의 알파벳 소문자 + 숫자 (필수)
  *   <li>{@code slackId} — 슬랙 ID (필수)
+ *   <li>{@code password} — 평문 비밀번호. 서버는 이 값을 인증 서버(Keycloak)에 전달만 하고, 자체 DB에는 저장하지 않는다. (필수)
  *   <li>{@code role} — 회원 역할(Role), 예: MASTER_MANAGER, HUB_MANAGER, SHIPPING_AGENT, VENDOR_AGENT
  *       (필수)
  *   <li>{@code organizationType} — 소속 타입, HUB / VENDOR / NONE (필수)
@@ -26,7 +27,8 @@ import jakarta.validation.constraints.Pattern;
  *   <li>{@code organizationName} — 소속 이름(업체명 또는 허브명, 표시용) (선택)
  * </ul>
  *
- * <p>비밀번호(password)는 인증 서버(Keycloak)에서 관리하며, 본 DTO에서는 다루지 않는다.
+ * @author 박성준
+ * @since 1.0.0
  */
 public record MemberRegisterRequest(
     @NotBlank String name,
