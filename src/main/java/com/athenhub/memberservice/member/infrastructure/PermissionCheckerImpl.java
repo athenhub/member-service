@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
  * 보유 여부를 판단한다. 도메인 계층에서는 {@link PermissionChecker} 인터페이스에만 의존하며, 이 구현체는 인프라스트럭처 계층에서 실제 조회 로직을
  * 제공한다.
  *
- * @author 사용자
+ * @author 박성준
  * @since 1.0.0
  */
 @Component
@@ -34,8 +34,7 @@ public class PermissionCheckerImpl implements PermissionChecker {
    * 역할이 {@link MemberRole#MASTER_MANAGER} 인지 여부를 반환한다.
    *
    * @param requesterId 권한을 확인할 요청자(회원)의 UUID
-   * @param targetMemberId (옵션) 권한이 행사될 대상 회원의 ID. 현재 구현에서는 사용하지 않지만, 향후 대상 회원에 따른 세부 권한 검증이 필요할 경우를
-   *     대비해 포함되어 있다.
+   * @param targetMemberId 권한이 행사될 대상 회원의 ID (현재 구현에서는 사용하지 않지만, 향후 대상 회원별 세부 권한 검증 시 활용 가능)
    * @return 요청자의 역할이 {@link MemberRole#MASTER_MANAGER} 이면 {@code true}, 그렇지 않으면 {@code false}
    * @throws MemberException 요청자 회원이 존재하지 않는 경우
    */

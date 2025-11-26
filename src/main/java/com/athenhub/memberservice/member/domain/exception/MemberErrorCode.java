@@ -11,14 +11,13 @@ import org.springframework.http.HttpStatus;
  *
  * <ul>
  *   <li>요청 값/정합성 오류: {@link #INVALID_MEMBER_INFO}, {@link #USED_MEMBER_INFO}
- *   <li>상태 전이/상태 제약: {@link #INVALID_APPROVE_STATUS}, {@link #INVALID_STATUS_FOR_UPDATE},
- *       {@link #INVALID_STATUS_TRANSITION}, {@link #DELETED_MEMBER}
+ *   <li>상태 전이/상태 제약: {@link #INVALID_APPROVE_STATUS}, {@link #INVALID_STATUS_FOR_UPDATE}, {@link
+ *       #INVALID_STATUS_TRANSITION}, {@link #DELETED_MEMBER}
  *   <li>리소스 조회 실패: {@link #MEMBER_NOT_FOUND}, {@link #HUB_NOT_FOUND}
  *   <li>권한 오류: {@link #NO_PERMISSION}
  * </ul>
  *
- * <p>각 에러 코드는 HTTP 상태 코드와 애플리케이션 내부 에러 코드를 함께 제공하여, 클라이언트 응답 및
- * 로깅/모니터링 시 일관된 형태로 활용될 수 있다.
+ * <p>각 에러 코드는 HTTP 상태 코드와 애플리케이션 내부 에러 코드를 함께 제공하여, 클라이언트 응답 및 로깅/모니터링 시 일관된 형태로 활용될 수 있다.
  *
  * @author 박성준
  * @since 1.0.0
@@ -33,6 +32,7 @@ public enum MemberErrorCode implements ErrorCode {
   // ===== 상태 전이 / 상태 제약 관련 =====
   /** 승인(approve)을 수행하기에 유효하지 않은 상태인 경우 */
   INVALID_APPROVE_STATUS(HttpStatus.BAD_REQUEST.value(), "INVALID_APPROVE_STATUS"),
+  INVALID_REJECT_STATUS(HttpStatus.BAD_REQUEST.value(), "INVALID_REJECT_STATUS"),
 
   /** 회원 정보 수정(update)을 수행하기에 유효하지 않은 상태인 경우 */
   INVALID_STATUS_FOR_UPDATE(HttpStatus.BAD_REQUEST.value(), "INVALID_STATUS_FOR_UPDATE"),
@@ -48,8 +48,7 @@ public enum MemberErrorCode implements ErrorCode {
   HUB_NOT_FOUND(HttpStatus.BAD_REQUEST.value(), "HUB_NOT_FOUND"),
 
   // ===== 권한 관련 =====
-  NO_PERMISSION(HttpStatus.FORBIDDEN.value(), "NO_PERMISSION"),
-  ;
+  NO_PERMISSION(HttpStatus.FORBIDDEN.value(), "NO_PERMISSION");
 
   private final int status;
   private final String code;

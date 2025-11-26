@@ -5,9 +5,13 @@ import java.util.Optional;
 import org.springframework.data.repository.Repository;
 
 /**
- * {@link Member} 애그리게이트를 위한 Spring Data 리포지토리 인터페이스.
+ * {@link Member} 애그리거트를 위한 Spring Data 리포지토리 인터페이스.
  *
- * <p>회원 저장, 조회 및 중복 여부 확인 기능을 제공한다. 도메인 계층에서는 이 인터페이스에만 의존하고, 실제 구현은 Spring Data JPA가 런타임에 생성한다.
+ * <p>회원 저장, 조회 및 중복 여부 확인 기능을 제공한다. 도메인 계층에서는 이 인터페이스에만 의존하고, 실제 구현체는 Spring Data JPA가 런타임에 동적으로
+ * 생성한다.
+ *
+ * @author 박성준
+ * @since 1.0.0
  */
 public interface MemberRepository extends Repository<Member, MemberId> {
 
