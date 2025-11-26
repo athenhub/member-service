@@ -1,4 +1,4 @@
-package com.athenhub.memberservice.member.domain.dto.response;
+package com.athenhub.memberservice.member.presentation.webapi.dto;
 
 import com.athenhub.memberservice.member.domain.Member;
 import com.athenhub.memberservice.member.domain.MemberRole;

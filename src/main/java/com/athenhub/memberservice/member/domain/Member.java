@@ -3,7 +3,7 @@ package com.athenhub.memberservice.member.domain;
 import com.athenhub.memberservice.global.domain.AbstractAuditEntity;
 import com.athenhub.memberservice.member.domain.dto.request.MemberMasterUpdateRequest;
 import com.athenhub.memberservice.member.domain.dto.request.MemberRegisterRequest;
-import com.athenhub.memberservice.member.domain.dto.request.MemberUpdateRequest;
+import com.athenhub.memberservice.member.domain.dto.request.MemberUpdateInfoRequest;
 import com.athenhub.memberservice.member.domain.exception.MemberErrorCode;
 import com.athenhub.memberservice.member.domain.exception.MemberException;
 import com.athenhub.memberservice.member.domain.exception.PermissionErrorCode;
@@ -19,6 +19,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
+import java.util.Objects;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -124,17 +125,25 @@ public class Member extends AbstractAuditEntity {
    * @throws MemberException 상태가 유효하지 않거나 이미 삭제된 회원인 경우
    */
   public void updateInfo(
-      MemberUpdateRequest updateRequest, MemberExistenceChecker memberExistenceChecker) {
+      MemberUpdateInfoRequest updateRequest, MemberExistenceChecker memberExistenceChecker) {
 
     validateNotDeleted();
     checkDuplicateSlackId(updateRequest.slackId(), memberExistenceChecker);
     requireStatus(MemberStatus.ACTIVATED, MemberErrorCode.INVALID_STATUS_FOR_UPDATE);
 
-    if (memberExistenceChecker.existsBySlackId(updateRequest.slackId())) {
-      throw new MemberException(MemberErrorCode.USED_MEMBER_INFO);
+    updateSlackId(updateRequest.slackId(), memberExistenceChecker);
+  }
+
+  private void updateSlackId(String newSlackId, MemberExistenceChecker memberExistenceChecker) {
+
+    // 값이 그대로면 중복 체크/업데이트 스킵
+    if (Objects.equals(this.slackId, newSlackId)) {
+      return;
     }
 
-    this.slackId = updateRequest.slackId();
+    checkDuplicateSlackId(newSlackId, memberExistenceChecker);
+
+    this.slackId = newSlackId;
   }
 
   /**
@@ -143,21 +152,24 @@ public class Member extends AbstractAuditEntity {
    * <p>마스터 권한을 가진 요청자인지 검증한 뒤, 이름/역할/소속 유형을 수정한다.
    *
    * @param updateRequest 수정할 회원 정보(이름, 역할, 소속 유형 등)
-   * @param requestId 수정 요청을 한 주체(관리자)의 ID
    * @param permissionChecker 권한 검증 도메인 서비스
    * @throws PermissionException 마스터 관리 권한이 없는 경우
    * @throws MemberException 이미 삭제된 회원 등, 도메인 규칙 위반인 경우
    */
   public void updateByMaster(
       MemberMasterUpdateRequest updateRequest,
-      UUID requestId,
-      PermissionChecker permissionChecker) {
+      PermissionChecker permissionChecker,
+      MemberExistenceChecker memberExistenceChecker) {
 
-    masterManagerMethod(requestId, permissionChecker);
+    masterManagerMethod(this.id.toUuid(), permissionChecker);
+    checkDuplicateUsername(updateRequest.username(), memberExistenceChecker);
 
     this.name = updateRequest.name();
+    this.username = updateRequest.username();
     this.role = updateRequest.role();
     this.organizationType = updateRequest.organizationType();
+    this.organizationName = updateRequest.organizationName();
+    this.status = updateRequest.status();
   }
 
   /**

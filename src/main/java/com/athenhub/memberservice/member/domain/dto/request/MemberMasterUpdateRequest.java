@@ -29,6 +29,8 @@ import jakarta.validation.constraints.NotNull;
  */
 public record MemberMasterUpdateRequest(
     @NotBlank String name,
+    @NotBlank String username,
+    @NotBlank String slackId,
     @NotNull MemberRole role,
     @NotNull OrganizationType organizationType,
     String organizationName,

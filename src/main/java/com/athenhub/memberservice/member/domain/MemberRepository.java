@@ -32,7 +32,7 @@ public interface MemberRepository extends Repository<Member, MemberId> {
   Optional<Member> findById(MemberId memberId);
 
   /**
-   * 주어진 ID를 가진 회원이 존재하는지 확인한다.
+   * 주어진 ID를 가진 회원이 존재하는지 확인 한다.
    *
    * @param memberId 존재 여부를 확인할 회원 ID 값 객체
    * @return 회원이 존재하면 {@code true}, 존재하지 않으면 {@code false}

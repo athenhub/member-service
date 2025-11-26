@@ -15,4 +15,4 @@ import jakarta.validation.constraints.NotBlank;
  * @since 1.0.0
  * @param slackId 수정할 회원의 슬랙 ID
  */
-public record MemberUpdateRequest(@NotBlank String slackId) {}
+public record MemberUpdateInfoRequest(@NotBlank String slackId) {}
