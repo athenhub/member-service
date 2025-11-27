@@ -22,7 +22,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * {@link MemberCommandService}에 대한 단위 테스트.
+ * {@link MemberManagerService}에 대한 단위 테스트.
  *
  * <p>회원 가입 유스케이스에 대해 외부 포트({@link IdentityClient}, {@link MemberExistenceChecker}) 및 리포지토리({@link
  * MemberRepository})와의 상호작용을 검증한다.
@@ -31,7 +31,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @since 1.0.0
  */
 @ExtendWith(MockitoExtension.class)
-class MemberCommandServiceTest {
+class MemberManagerServiceTest {
 
   @Mock private IdentityClient identityClient;
 
@@ -39,7 +39,7 @@ class MemberCommandServiceTest {
 
   @Mock private MemberRepository memberRepository;
 
-  @InjectMocks private MemberCommandService memberCommandService;
+  @InjectMocks private MemberManagerService memberManagerService;
 
   @Test
   void signUp_success_createsUserInKeycloakAndSavesMember() {
@@ -55,7 +55,7 @@ class MemberCommandServiceTest {
         .thenAnswer(invocation -> invocation.getArgument(0, Member.class));
 
     // when
-    Member result = memberCommandService.signUp(request, rawPassword);
+    Member result = memberManagerService.signUp(request);
 
     // then
     verify(identityClient).createUser(request.username(), rawPassword, request.name());
@@ -78,7 +78,7 @@ class MemberCommandServiceTest {
         .thenThrow(new RuntimeException("Keycloak error"));
 
     // when & then
-    assertThatThrownBy(() -> memberCommandService.signUp(request, rawPassword))
+    assertThatThrownBy(() -> memberManagerService.signUp(request))
         .isInstanceOf(RuntimeException.class);
 
     verify(memberRepository, never()).save(any(Member.class));

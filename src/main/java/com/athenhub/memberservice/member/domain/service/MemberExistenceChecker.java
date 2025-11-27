@@ -27,7 +27,7 @@ public interface MemberExistenceChecker {
    * @param memberId 존재 여부를 확인할 회원의 고유 ID
    * @return 회원이 존재하면 {@code true}, 존재하지 않으면 {@code false}
    */
-  boolean hasMember(UUID memberId);
+  boolean isMemberIdAlreadyUsed(UUID memberId);
 
   /**
    * 주어진 username 이 이미 사용 중인지 확인한다.
@@ -35,7 +35,7 @@ public interface MemberExistenceChecker {
    * @param username 중복 여부를 확인할 회원 아이디(username)
    * @return 해당 username 을 사용하는 회원이 이미 존재하면 {@code true}, 아니면 {@code false}
    */
-  boolean existsByUsername(String username);
+  boolean isUsernameAlreadyUsed(String username);
 
   /**
    * 주어진 Slack ID 가 이미 사용 중인지 확인한다.
@@ -43,5 +43,5 @@ public interface MemberExistenceChecker {
    * @param slackId 중복 여부를 확인할 Slack ID
    * @return 해당 Slack ID 를 사용하는 회원이 이미 존재하면 {@code true}, 아니면 {@code false}
    */
-  boolean existsBySlackId(String slackId);
+  boolean isSlackIdAlreadyUsed(String slackId);
 }

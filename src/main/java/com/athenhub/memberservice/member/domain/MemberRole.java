@@ -27,5 +27,7 @@ public enum MemberRole {
   SHIPPING_AGENT,
 
   /** 특정 업체(가맹점)의 상품/주문 등을 관리하는 업체 담당자 역할 */
-  VENDOR_AGENT
+  VENDOR_AGENT,
+
+  USER // 권한을 부여 받지 않은 기본 사용자
 }

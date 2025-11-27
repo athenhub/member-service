@@ -1,6 +1,7 @@
 package com.athenhub.memberservice.infrastructure.security.config;
 
-import com.athenhub.memberservice.infrastructure.security.keycloak.KeycloakClientRoleConverter;
+import com.athenhub.memberservice.infrastructure.security.SecurityRoleConverter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -12,13 +13,15 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+  private final SecurityRoleConverter roleConverter;
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
     JwtAuthenticationConverter conv = new JwtAuthenticationConverter();
-    conv.setJwtGrantedAuthoritiesConverter(new KeycloakClientRoleConverter());
+    conv.setJwtGrantedAuthoritiesConverter(roleConverter);
 
     http.csrf(c -> c.disable())
         .authorizeHttpRequests(

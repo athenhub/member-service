@@ -1,4 +1,4 @@
-package com.athenhub.memberservice.presentation.dto;
+package com.athenhub.memberservice.member.presentation.webapi.token;
 
 public record TokenResponse(
     String accessToken,

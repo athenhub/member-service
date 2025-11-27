@@ -8,8 +8,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.athenhub.memberservice.member.MemberFixture;
-import com.athenhub.memberservice.member.application.service.MemberCommandService;
+import com.athenhub.memberservice.member.application.service.MemberManagerService;
 import com.athenhub.memberservice.member.domain.Member;
+import com.athenhub.memberservice.member.presentation.webapi.MemberApi;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,7 +23,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 /**
- * {@link MemberCommandController}에 대한 Web 계층 단위 테스트.
+ * {@link MemberApi}에 대한 Web 계층 단위 테스트.
  *
  * <p>스프링 컨텍스트를 기동하지 않고, {@link MockMvcBuilders#standaloneSetup(Object...)}을 사용하여 컨트롤러만 올린 상태에서 HTTP
  * 요청/응답 매핑과 상태 코드, JSON 구조를 검증한다.
@@ -31,26 +32,26 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
  * @since 1.0.0
  */
 @ExtendWith(MockitoExtension.class)
-class MemberCommandControllerTest {
+class MemberApiTest {
 
   private MockMvc mockMvc;
 
-  @Mock private MemberCommandService memberCommandService;
+  @Mock private MemberManagerService memberManagerService;
 
-  @InjectMocks private MemberCommandController memberCommandController;
+  @InjectMocks private MemberApi memberAPI;
 
   /**
    * 각 테스트 실행 전에 {@link MockMvc}를 초기화한다.
    *
-   * <p>{@link MockMvcBuilders#standaloneSetup(Object...)}을 사용하여 {@link MemberCommandController}만
-   * 등록된 가벼운 MVC 환경을 구성한다. 이를 통해 스프링 컨텍스트 전체를 기동하지 않고도 HTTP 요청/응답 흐름을 검증할 수 있다.
+   * <p>{@link MockMvcBuilders#standaloneSetup(Object...)}을 사용하여 {@link MemberApi}만 등록된 가벼운 MVC 환경을
+   * 구성한다. 이를 통해 스프링 컨텍스트 전체를 기동하지 않고도 HTTP 요청/응답 흐름을 검증할 수 있다.
    *
    * @author 박성준
    * @since 1.0.0
    */
   @BeforeEach
   void setUp() {
-    mockMvc = MockMvcBuilders.standaloneSetup(memberCommandController).build();
+    mockMvc = MockMvcBuilders.standaloneSetup(memberAPI).build();
   }
 
   /**
@@ -59,7 +60,7 @@ class MemberCommandControllerTest {
    * <p>검증 내용:
    *
    * <ul>
-   *   <li>{@link MemberCommandService#signUp}이 호출되어 {@link Member} 인스턴스를 반환하는지
+   *   <li>{@link MemberManagerService#signUp}이 호출되어 {@link Member} 인스턴스를 반환하는지
    *   <li>{@link MemberFixture#createMemberMock(UUID)}로 생성한 목 {@link Member}의 값이 응답 JSON에 그대로 반영되는지
    *   <li>HTTP 상태 코드가 201(CREATED)인지
    *   <li>응답 본문의 id, username, name, role, status 필드가 기대값과 일치하는지
@@ -75,7 +76,7 @@ class MemberCommandControllerTest {
     UUID memberId = UUID.randomUUID();
     Member member = MemberFixture.createMemberMock(memberId);
 
-    when(memberCommandService.signUp(any(), any())).thenReturn(member);
+    when(memberManagerService.signUp(any())).thenReturn(member);
 
     String requestJson =
         """
@@ -99,6 +100,6 @@ class MemberCommandControllerTest {
         .andExpect(jsonPath("$.role").value("HUB_MANAGER"))
         .andExpect(jsonPath("$.status").value("PENDING"));
 
-    verify(memberCommandService).signUp(any(), any());
+    verify(memberManagerService).signUp(any());
   }
 }
