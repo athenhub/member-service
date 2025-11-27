@@ -1,4 +1,4 @@
-package com.athenhub.memberservice.infrastructure;
+package com.athenhub.memberservice.infrastructure.swagger;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;

@@ -104,7 +104,6 @@ public class Member extends AbstractAuditEntity {
     Member member = new Member();
 
     member.id = MemberId.of(memberId);
-    member.organizationId = registerRequest.organizationId();
     member.name = registerRequest.name();
     member.username = registerRequest.username();
     member.slackId = registerRequest.slackId();

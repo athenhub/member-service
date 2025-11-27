@@ -1,5 +1,6 @@
-package com.athenhub.memberservice.member.infrastructure.keycloak;
+package com.athenhub.memberservice.member.infrastructure;
 
+import com.athenhub.memberservice.infrastructure.keycloak.config.KeycloakProperties;
 import com.athenhub.memberservice.member.domain.service.IdentityClient;
 import jakarta.ws.rs.core.Response;
 import java.util.UUID;

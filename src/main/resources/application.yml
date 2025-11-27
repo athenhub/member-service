@@ -23,11 +23,13 @@ eureka:
 
 # 키클록 config 설정
 keycloak:
-  admin:
-    server-url: https://auth.athenhub.xyz/
-    realm: athenhub-dev
-    client-id: athenhub-web
-    client-secret: ${CLIENT_SECRET}
+  server-url: https://auth.athenhub.xyz/
+  realm: athenhub-dev
+  client-id: ${CLIENT_ID}
+  client-secret: ${CLIENT_SECRET}
+  admin-username: ${KEYCLOAK_ADMIN_USERNAME}
+  admin-password: ${KEYCLOAK_ADMIN_PASSWORD}
+
 
 # OPEN DOC API 설정
 springdoc:
