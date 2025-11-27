@@ -2,7 +2,6 @@ package com.athenhub.memberservice.member.domain.dto.request;
 
 import com.athenhub.memberservice.member.domain.MemberRole;
 import com.athenhub.memberservice.member.domain.OrganizationType;
-import com.athenhub.memberservice.member.domain.vo.OrganizationId;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -41,5 +40,4 @@ public record MemberRegisterRequest(
         String password,
     @NotNull MemberRole role,
     @NotNull OrganizationType organizationType,
-    OrganizationId organizationId,
     String organizationName) {}

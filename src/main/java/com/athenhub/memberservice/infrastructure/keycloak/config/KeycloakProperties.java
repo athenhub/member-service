@@ -1,4 +1,4 @@
-package com.athenhub.memberservice.member.infrastructure.keycloak;
+package com.athenhub.memberservice.infrastructure.keycloak.config;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -31,7 +31,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @Getter
 @Setter
-@ConfigurationProperties(prefix = "keycloak.admin")
+@ConfigurationProperties(prefix = "keycloak")
 public class KeycloakProperties {
 
   /** Keycloak 서버의 기본 URL (예: {@code http://localhost:8080}) */
@@ -45,4 +45,8 @@ public class KeycloakProperties {
 
   /** 클라이언트 자격 증명에 사용할 시크릿 값 */
   private String clientSecret;
+
+  private String adminUsername;
+
+  private String adminPassword;
 }
