@@ -28,23 +28,13 @@ public class MemberCommandController {
 
   private final MemberCommandService memberCommandService;
 
-  /**
-   * 회원 가입 요청을 처리한다.
-   *
-   * <p>요청 본문으로부터 {@link MemberRegisterRequest}를 검증한 뒤, {@link
-   * MemberCommandService#signUp(MemberRegisterRequest, String)}를 호출하여 회원 가입 유스케이스를 수행하고, 결과를 {@link
-   * MemberRegisterResponse}로 변환하여 반환한다.
-   *
-   * @param request 회원 가입 요청 정보 DTO
-   * @return 생성된 회원 정보 응답 DTO와 201(CREATED) 상태 코드
-   */
   @PostMapping
   public ResponseEntity<MemberRegisterResponse> signUp(
       @Valid @RequestBody MemberRegisterRequest request) {
+    String rawPassword = request.password(); // 예시
 
-    Member member = memberCommandService.signUp(request, request.password());
-    MemberRegisterResponse response = MemberRegisterResponse.from(member);
+    Member member = memberCommandService.signUp(request, rawPassword);
 
-    return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    return ResponseEntity.status(HttpStatus.CREATED).body(MemberRegisterResponse.from(member));
   }
 }
