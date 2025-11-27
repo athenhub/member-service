@@ -1,6 +1,7 @@
 package com.athenhub.memberservice.member.domain;
 
 import com.athenhub.memberservice.global.domain.AbstractAuditEntity;
+import com.athenhub.memberservice.member.domain.dto.request.MemberChangeStatusRequest;
 import com.athenhub.memberservice.member.domain.dto.request.MemberMasterUpdateRequest;
 import com.athenhub.memberservice.member.domain.dto.request.MemberRegisterRequest;
 import com.athenhub.memberservice.member.domain.dto.request.MemberUpdateInfoRequest;
@@ -8,6 +9,7 @@ import com.athenhub.memberservice.member.domain.exception.MemberErrorCode;
 import com.athenhub.memberservice.member.domain.exception.MemberException;
 import com.athenhub.memberservice.member.domain.exception.PermissionErrorCode;
 import com.athenhub.memberservice.member.domain.exception.PermissionException;
+import com.athenhub.memberservice.member.domain.service.IdentityClient;
 import com.athenhub.memberservice.member.domain.service.MemberExistenceChecker;
 import com.athenhub.memberservice.member.domain.service.PermissionChecker;
 import com.athenhub.memberservice.member.domain.vo.MemberId;
@@ -19,6 +21,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import java.util.Objects;
 import java.util.UUID;
 import lombok.AccessLevel;
@@ -52,29 +55,28 @@ import lombok.ToString;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member extends AbstractAuditEntity {
 
-  @EmbeddedId private MemberId id;
+  @EmbeddedId
+  private MemberId id;
 
-  @Embedded private OrganizationId organizationId;
+  @Embedded
+  private OrganizationId organizationId;
 
   @Column(nullable = false)
   private String name;
 
-  @Column(nullable = false, unique = true)
+  @Transient
   private String username;
 
   @Column(nullable = false, unique = true)
   private String slackId;
 
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
   private MemberRole role;
 
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
   private MemberStatus status;
 
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
   private OrganizationType organizationType;
 
   @Column(name = "organization_name")
@@ -86,31 +88,32 @@ public class Member extends AbstractAuditEntity {
    * <p>주어진 등록 요청과 외부에서 전달된 {@code memberId}를 기반으로 신규 {@link Member}를 생성한다. 생성 시 상태는 {@link
    * MemberStatus#PENDING} 으로 설정된다.
    *
-   * @param registerRequest 회원 등록 요청 정보
-   * @param memberId 외부에서 발급된 회원 식별자(UUID)
+   * @param registerRequest        회원 등록 요청 정보
    * @param memberExistenceChecker 회원 존재/중복 여부 확인 도메인 서비스
    * @return 생성된 회원 엔터티
    * @throws MemberException 도메인 규칙 위반 시 (예: 중복 정보 등)
    */
   public static Member signUp(
       MemberRegisterRequest registerRequest,
-      UUID memberId,
+      IdentityClient identityClient,
       MemberExistenceChecker memberExistenceChecker) {
 
     // 중복 검증
-    checkDuplicateMemberId(memberId, memberExistenceChecker);
-    checkDuplicateSlackId(registerRequest.slackId(), memberExistenceChecker);
     checkDuplicateUsername(registerRequest.username(), memberExistenceChecker);
+    checkDuplicateSlackId(registerRequest.slackId(), memberExistenceChecker);
+
+    UUID userId = identityClient.createUser(registerRequest.username(), registerRequest.password(),
+        registerRequest.name());
 
     Member member = new Member();
 
-    member.id = MemberId.of(memberId);
+    member.id = MemberId.of(userId);
     member.name = registerRequest.name();
-    member.username = registerRequest.username();
     member.slackId = registerRequest.slackId();
-    member.role = registerRequest.role();
-    member.organizationType = registerRequest.organizationType();
-    member.organizationName = registerRequest.organizationName();
+    member.role = MemberRole.USER;
+    member.organizationType = OrganizationType.OTHERS;
+    member.organizationId = null;
+    member.organizationName = null;
     member.status = MemberStatus.PENDING;
 
     return member;
@@ -126,7 +129,6 @@ public class Member extends AbstractAuditEntity {
    */
   public void updateInfo(
       MemberUpdateInfoRequest updateRequest, MemberExistenceChecker memberExistenceChecker) {
-
     validateNotDeleted();
     checkDuplicateSlackId(updateRequest.slackId(), memberExistenceChecker);
     requireStatus(MemberStatus.ACTIVATED, MemberErrorCode.INVALID_STATUS_FOR_UPDATE);
@@ -151,10 +153,10 @@ public class Member extends AbstractAuditEntity {
    *
    * <p>마스터 권한을 가진 요청자인지 검증한 뒤, 이름/역할/소속 유형을 수정한다.
    *
-   * @param updateRequest 수정할 회원 정보(이름, 역할, 소속 유형 등)
+   * @param updateRequest     수정할 회원 정보(이름, 역할, 소속 유형 등)
    * @param permissionChecker 권한 검증 도메인 서비스
    * @throws PermissionException 마스터 관리 권한이 없는 경우
-   * @throws MemberException 이미 삭제된 회원 등, 도메인 규칙 위반인 경우
+   * @throws MemberException     이미 삭제된 회원 등, 도메인 규칙 위반인 경우
    */
   public void updateByMaster(
       MemberMasterUpdateRequest updateRequest,
@@ -165,7 +167,6 @@ public class Member extends AbstractAuditEntity {
     checkDuplicateUsername(updateRequest.username(), memberExistenceChecker);
 
     this.name = updateRequest.name();
-    this.username = updateRequest.username();
     this.role = updateRequest.role();
     this.organizationType = updateRequest.organizationType();
     this.organizationName = updateRequest.organizationName();
@@ -178,15 +179,14 @@ public class Member extends AbstractAuditEntity {
    * <p>마스터 권한을 검증한 뒤, 현재 상태가 {@link MemberStatus#PENDING} 인 경우에만 {@link MemberStatus#ACTIVATED} 로
    * 전이된다.
    *
-   * @param requestId 승인 요청을 한 주체(관리자)의 ID
+   * @param requestId         승인 요청을 한 주체(관리자)의 ID
    * @param permissionChecker 권한 검증 도메인 서비스
    * @throws PermissionException 마스터 관리 권한이 없는 경우
-   * @throws MemberException 상태가 PENDING 이 아니거나 이미 삭제된 회원인 경우
+   * @throws MemberException     상태가 PENDING 이 아니거나 이미 삭제된 회원인 경우
    */
   public void approve(UUID requestId, PermissionChecker permissionChecker) {
 
     masterManagerMethod(requestId, permissionChecker);
-
     requireStatus(MemberStatus.PENDING, MemberErrorCode.INVALID_APPROVE_STATUS);
     this.status = MemberStatus.ACTIVATED;
   }
@@ -197,16 +197,25 @@ public class Member extends AbstractAuditEntity {
    * <p>마스터 권한을 검증한 뒤, 현재 상태가 {@link MemberStatus#PENDING} 인 경우에만 {@link MemberStatus#REJECTED} 로
    * 전이된다.
    *
-   * @param requestId 거절 요청을 한 주체(관리자)의 ID
+   * @param requestId         거절 요청을 한 주체(관리자)의 ID
    * @param permissionChecker 권한 검증 도메인 서비스
    * @throws PermissionException 마스터 관리 권한이 없는 경우
-   * @throws MemberException 상태가 PENDING 이 아니거나 이미 삭제된 회원인 경우
+   * @throws MemberException     상태가 PENDING 이 아니거나 이미 삭제된 회원인 경우
    */
   public void reject(UUID requestId, PermissionChecker permissionChecker) {
+
     masterManagerMethod(requestId, permissionChecker);
     requireStatus(MemberStatus.PENDING, MemberErrorCode.INVALID_REJECT_STATUS);
     this.status = MemberStatus.REJECTED;
   }
+
+  public void changeStatus(PermissionChecker permissionChecker, MemberChangeStatusRequest request) {
+
+    masterManagerMethod(this.id.toUuid(), permissionChecker);
+
+    this.status = MemberStatus.valueOf(request.status());
+  }
+
 
   /**
    * 회원 소프트 삭제(탈퇴)를 수행하는 메서드.
@@ -214,9 +223,9 @@ public class Member extends AbstractAuditEntity {
    * <p>마스터 권한을 검증한 뒤, 상태를 {@link MemberStatus#DEACTIVATED} 로 변경하고 상위 {@link
    * AbstractAuditEntity#delete(String)} 를 호출하여 삭제 이력을 기록한다.
    *
-   * @param deletedBy 삭제 수행자 식별자(이력 기록용 문자열)
+   * @param deletedBy         삭제 수행자 식별자(이력 기록용 문자열)
    * @param permissionChecker 권한 검증 도메인 서비스
-   * @param requestId 삭제 요청을 한 주체(관리자)의 ID
+   * @param requestId         삭제 요청을 한 주체(관리자)의 ID
    * @throws PermissionException 마스터 관리 권한이 없는 경우
    */
   public void deleteMember(String deletedBy, PermissionChecker permissionChecker, UUID requestId) {
@@ -235,28 +244,20 @@ public class Member extends AbstractAuditEntity {
     checkMemberManagePermission(this.id.toUuid(), permissionChecker, requestId);
   }
 
-  // 회원 UUID 중복 체크
-  private static void checkDuplicateMemberId(
-      UUID memberId, MemberExistenceChecker memberExistenceChecker) {
-    if (memberExistenceChecker.hasMember(memberId)) {
-      // 이미 해당 memberId 로 회원이 존재하면 '중복 정보' 에러
-      throw new MemberException(MemberErrorCode.USED_MEMBER_INFO, "해당 회원의 ID가 이미 존재합니다.");
-    }
-  }
 
   // slackID 중복 체크
   private static void checkDuplicateSlackId(
       String slackId, MemberExistenceChecker memberExistenceChecker) {
-    if (memberExistenceChecker.existsBySlackId(slackId)) {
-      throw new MemberException(MemberErrorCode.USED_MEMBER_INFO, "Slack ID 중복입니다.");
+    if (memberExistenceChecker.isSlackIdAlreadyUsed(slackId)) {
+      throw new MemberException(MemberErrorCode.HAS_SLACK_ID, "Slack ID 중복입니다.");
     }
   }
 
   // 회원 username 중복 체크
   private static void checkDuplicateUsername(
       String username, MemberExistenceChecker memberExistenceChecker) {
-    if (memberExistenceChecker.existsByUsername(username)) {
-      throw new MemberException(MemberErrorCode.USED_MEMBER_INFO, "username 중복입니다.");
+    if (memberExistenceChecker.isUsernameAlreadyUsed(username)) {
+      throw new MemberException(MemberErrorCode.HAS_USERNAME, "username 중복입니다.");
     }
   }
 
@@ -292,4 +293,6 @@ public class Member extends AbstractAuditEntity {
   public boolean isDeleted() {
     return getDeletedAt() != null;
   }
+
+
 }

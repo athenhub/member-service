@@ -1,9 +1,7 @@
 package com.athenhub.memberservice.member.presentation.webapi.dto;
 
 import com.athenhub.memberservice.member.domain.Member;
-import com.athenhub.memberservice.member.domain.MemberRole;
-import com.athenhub.memberservice.member.domain.MemberStatus;
-import com.athenhub.memberservice.member.domain.OrganizationType;
+import com.athenhub.memberservice.member.domain.service.IdentityClient;
 import java.util.UUID;
 
 /**
@@ -18,12 +16,8 @@ public record MemberRegisterResponse(
     UUID id,
     String username,
     String name,
-    String slackId,
-    MemberRole role,
-    MemberStatus status,
-    OrganizationType organizationType,
-    UUID organizationId,
-    String organizationName) {
+    String slackId
+) {
 
   /**
    * {@link Member} 엔터티로부터 {@link MemberRegisterResponse}를 생성한다.
@@ -31,18 +25,11 @@ public record MemberRegisterResponse(
    * @param member 응답으로 변환할 회원 엔터티
    * @return 변환된 회원 등록 응답 DTO
    */
-  public static MemberRegisterResponse from(Member member) {
-    UUID orgId = member.getOrganizationId() == null ? null : member.getOrganizationId().toUuid();
-
+  public static MemberRegisterResponse from(Member member, IdentityClient identityClient) {
     return new MemberRegisterResponse(
         member.getId().toUuid(),
-        member.getUsername(),
+        identityClient.getUserName(member.getId().toUuid()),
         member.getName(),
-        member.getSlackId(),
-        member.getRole(),
-        member.getStatus(),
-        member.getOrganizationType(),
-        orgId,
-        member.getOrganizationName());
+        member.getSlackId());
   }
 }

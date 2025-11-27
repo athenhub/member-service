@@ -1,4 +1,4 @@
-package com.athenhub.memberservice.presentation.validator;
+package com.athenhub.memberservice.member.presentation.webapi.validator;
 
 public interface MobileValidator {
   default boolean checkMobile(String mobile) {

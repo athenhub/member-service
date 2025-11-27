@@ -2,6 +2,7 @@ package com.athenhub.memberservice.member.application.service;
 
 import com.athenhub.memberservice.member.domain.Member;
 import com.athenhub.memberservice.member.domain.MemberRepository;
+import com.athenhub.memberservice.member.domain.dto.request.MemberChangeStatusRequest;
 import com.athenhub.memberservice.member.domain.dto.request.MemberMasterUpdateRequest;
 import com.athenhub.memberservice.member.domain.dto.request.MemberRegisterRequest;
 import com.athenhub.memberservice.member.domain.dto.request.MemberUpdateInfoRequest;
@@ -45,7 +46,6 @@ public class MemberManagerService {
    *
    * <ol>
    *   <li>{@link IdentityClient}를 통해 외부 인증 시스템에 계정을 생성하고 발급된 사용자 식별자(UUID)를 조회한다.
-   *   <li>{@link Member#signUp(MemberRegisterRequest, UUID, MemberExistenceChecker)}를 호출하여 도메인
    *       규칙(중복 검증 포함)에 따라 {@link Member} 애그리거트를 생성한다.
    *   <li>생성된 {@link Member}를 {@link MemberRepository}를 통해 저장한다.
    * </ol>
@@ -53,27 +53,21 @@ public class MemberManagerService {
    * <p>이 메서드는 트랜잭션 경계 내에서 실행되며, member DB에 대한 저장 작업이 하나의 트랜잭션으로 처리된다.
    *
    * @param request 회원 가입 요청 정보 DTO
-   * @param rawPassword 외부 인증 시스템에 전달할 평문 비밀번호
    * @return 저장된 회원 엔터티
    */
-  public Member signUp(MemberRegisterRequest request, String rawPassword) {
-    // 1) Keycloak에 계정 생성
-    UUID userId = identityClient.createUser(request.username(), rawPassword, request.name());
+  public Member signUp(MemberRegisterRequest request) {
 
-    // 2) 도메인 엔티티 생성 (중복 검증 포함)
-    Member member = Member.signUp(request, userId, memberExistenceChecker);
+    // 도메인 엔티티 생성 (중복 검증 포함)
+    Member member = Member.signUp(request, identityClient, memberExistenceChecker);
 
-    // 3) member DB 저장
+    // member DB 저장
     memberRepository.save(member);
     return member;
   }
 
   public Member updateInfo(UUID memberId, MemberUpdateInfoRequest updateRequest) {
 
-    Member member =
-        memberRepository
-            .findById(MemberId.of(memberId))
-            .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+    Member member = findMember(memberId);
 
     member.updateInfo(updateRequest, memberExistenceChecker);
 
@@ -83,15 +77,61 @@ public class MemberManagerService {
   }
 
   public Member updateByMaster(UUID memberId, MemberMasterUpdateRequest updateRequest) {
-    Member member =
-        memberRepository
-            .findById(MemberId.of(memberId))
-            .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+    Member member = findMember(memberId);
 
     member.updateByMaster(updateRequest, permissionChecker, memberExistenceChecker);
 
     memberRepository.save(member);
 
     return member;
+  }
+
+  public Member aproveMember(UUID memberId, UUID requestId) {
+    Member member = findMember(memberId);
+
+    member.approve(requestId, permissionChecker);
+
+    memberRepository.save(member);
+
+    return member;
+  }
+
+  public Member rejectMember(UUID memberId, UUID requestId) {
+
+    Member member = findMember(memberId);
+
+    member.reject(requestId, permissionChecker);
+
+    memberRepository.save(member);
+
+    return member;
+  }
+
+  public void deleteMember(UUID memberId, UUID requestId) {
+
+    Member member = findMember(memberId);
+
+    member.deleteMember(requestId.toString(), permissionChecker, memberId);
+
+    memberRepository.save(member);
+
+    identityClient.deleteMember(memberId);
+  }
+
+  public Member changeStatus(UUID memberId, MemberChangeStatusRequest request) {
+    Member member = findMember(memberId);
+
+    member.changeStatus(permissionChecker, request);
+
+    memberRepository.save(member);
+
+    return member;
+  }
+
+
+  private Member findMember(UUID memberId) {
+    return memberRepository
+        .findById(MemberId.of(memberId))
+        .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
   }
 }

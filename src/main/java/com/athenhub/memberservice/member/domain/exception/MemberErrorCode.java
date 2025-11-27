@@ -28,6 +28,8 @@ public enum MemberErrorCode implements ErrorCode {
   // ===== 요청 값 / 정합성 관련 =====
   INVALID_MEMBER_INFO(HttpStatus.BAD_REQUEST.value(), "INVALID_MEMBER_INFO"),
   USED_MEMBER_INFO(HttpStatus.BAD_REQUEST.value(), "USED_MEMBER_INFO"),
+  HAS_USERNAME(HttpStatus.BAD_REQUEST.value(), "HAS_USERNAME"),
+  HAS_SLACK_ID(HttpStatus.BAD_REQUEST.value(), "HAS_SLACK_ID"),
 
   // ===== 상태 전이 / 상태 제약 관련 =====
   /** 승인(approve)을 수행하기에 유효하지 않은 상태인 경우 */

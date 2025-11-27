@@ -55,7 +55,7 @@ class MemberManagerServiceTest {
         .thenAnswer(invocation -> invocation.getArgument(0, Member.class));
 
     // when
-    Member result = memberManagerService.signUp(request, rawPassword);
+    Member result = memberManagerService.signUp(request);
 
     // then
     verify(identityClient).createUser(request.username(), rawPassword, request.name());
@@ -78,7 +78,7 @@ class MemberManagerServiceTest {
         .thenThrow(new RuntimeException("Keycloak error"));
 
     // when & then
-    assertThatThrownBy(() -> memberManagerService.signUp(request, rawPassword))
+    assertThatThrownBy(() -> memberManagerService.signUp(request))
         .isInstanceOf(RuntimeException.class);
 
     verify(memberRepository, never()).save(any(Member.class));

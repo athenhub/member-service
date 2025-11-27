@@ -89,17 +89,17 @@ public final class MemberFixture {
   /**
    * 지정된 플래그에 따라 동작하는 {@link MemberExistenceChecker} 목 객체를 생성한다.
    *
-   * @param hasMember {@link MemberExistenceChecker#hasMember} 반환값
-   * @param usernameExists {@link MemberExistenceChecker#existsByUsername} 반환값
-   * @param slackIdExists {@link MemberExistenceChecker#existsBySlackId} 반환값
+   * @param hasMember {@link MemberExistenceChecker#isMemberIdAlreadyUsed} 반환값
+   * @param usernameExists {@link MemberExistenceChecker#isUsernameAlreadyUsed} 반환값
+   * @param slackIdExists {@link MemberExistenceChecker#isSlackIdAlreadyUsed} 반환값
    * @return 설정된 목 {@link MemberExistenceChecker}
    */
   public static MemberExistenceChecker mockExistenceChecker(
       boolean hasMember, boolean usernameExists, boolean slackIdExists) {
     MemberExistenceChecker checker = Mockito.mock(MemberExistenceChecker.class);
-    Mockito.when(checker.hasMember(Mockito.any())).thenReturn(hasMember);
-    Mockito.when(checker.existsByUsername(Mockito.anyString())).thenReturn(usernameExists);
-    Mockito.when(checker.existsBySlackId(Mockito.anyString())).thenReturn(slackIdExists);
+    Mockito.when(checker.isMemberIdAlreadyUsed(Mockito.any())).thenReturn(hasMember);
+    Mockito.when(checker.isUsernameAlreadyUsed(Mockito.anyString())).thenReturn(usernameExists);
+    Mockito.when(checker.isSlackIdAlreadyUsed(Mockito.anyString())).thenReturn(slackIdExists);
     return checker;
   }
 }

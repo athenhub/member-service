@@ -55,9 +55,8 @@ public class KeycloakIdentityClient implements IdentityClient {
   public UUID createUser(String username, String rawPassword, String name) {
     UserRepresentation user = new UserRepresentation();
     user.setUsername(username);
-    user.setFirstName(name);
     user.setEnabled(true);
-
+    user.setEmail(username + "@athenhub.com");
     Response response = users().create(user);
 
     if (response.getStatus() >= 400) {
@@ -74,5 +73,19 @@ public class KeycloakIdentityClient implements IdentityClient {
     users().get(userId).resetPassword(passwordCred);
 
     return UUID.fromString(userId);
+  }
+
+  @Override
+  public String getUserName(UUID userId) {
+    UserRepresentation user = users().get(userId.toString()).toRepresentation();
+    return user == null ? null : user.getUsername();
+  }
+
+  @Override
+  public void deleteMember(UUID memberId) {
+    UserRepresentation user = users().get(memberId.toString()).toRepresentation();
+
+    user.setEnabled(false);
+    users().get(memberId.toString()).update(user);
   }
 }

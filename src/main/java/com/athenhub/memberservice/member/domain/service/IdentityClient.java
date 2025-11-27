@@ -21,4 +21,8 @@ public interface IdentityClient {
    * @return 외부 인증 시스템에서 발급된 사용자 ID(UUID)
    */
   UUID createUser(String username, String rawPassword, String name);
+
+  String getUserName(UUID userId);
+
+  void deleteMember(UUID memberId);
 }

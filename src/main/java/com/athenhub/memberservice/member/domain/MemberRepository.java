@@ -1,6 +1,7 @@
 package com.athenhub.memberservice.member.domain;
 
 import com.athenhub.memberservice.member.domain.vo.MemberId;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.repository.Repository;
 
@@ -30,6 +31,8 @@ public interface MemberRepository extends Repository<Member, MemberId> {
    * @return 회원이 존재하면 {@link Optional}에 담아 반환하고, 존재하지 않으면 빈 {@link Optional}
    */
   Optional<Member> findById(MemberId memberId);
+
+  List<Member> findAllByRole(MemberRole role);
 
   /**
    * 주어진 ID를 가진 회원이 존재하는지 확인 한다.

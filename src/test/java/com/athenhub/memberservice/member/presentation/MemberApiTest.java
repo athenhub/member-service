@@ -76,7 +76,7 @@ class MemberApiTest {
     UUID memberId = UUID.randomUUID();
     Member member = MemberFixture.createMemberMock(memberId);
 
-    when(memberManagerService.signUp(any(), any())).thenReturn(member);
+    when(memberManagerService.signUp(any())).thenReturn(member);
 
     String requestJson =
         """
@@ -100,6 +100,6 @@ class MemberApiTest {
         .andExpect(jsonPath("$.role").value("HUB_MANAGER"))
         .andExpect(jsonPath("$.status").value("PENDING"));
 
-    verify(memberManagerService).signUp(any(), any());
+    verify(memberManagerService).signUp(any());
   }
 }
